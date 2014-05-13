@@ -1,0 +1,12 @@
+{
+    "name": "partyappp",
+    "main": "server.js",
+    "dependencies":
+    {
+      "express": "~4.0.0",
+      "body-parser": "~1.0.1",
+      "bluebird": "~1.2.4",
+      "pi-gpio": "~0.0.5"
+    }
+}
+
