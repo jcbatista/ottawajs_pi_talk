@@ -1,5 +1,7 @@
+// Simple while loop demo using Promises
 var Promise = require("bluebird");
 
+// taken from: http://blog.victorquinn.com/javascript-promise-while-loop
 var promiseWhile = function(condition, action) {
   resolver = Promise.defer();
   var loop = function() {
