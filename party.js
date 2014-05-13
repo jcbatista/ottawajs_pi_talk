@@ -1,4 +1,5 @@
 "use strict";
+
 var Promise = require("bluebird");
 var gpio = Promise.promisifyAll(require("pi-gpio"));
 
@@ -27,45 +28,42 @@ var PartyController = function() {
         });
   }
 
-  function returnResolvedPromise() {
-    var deferred = Promise.pending();
-    deferred.fulfill();
-    return deferred.promise;
-  }
-
   self.start = function() {
-    if(self.isStarted){
-      console.log("Party already started, carry-on ...");
-      return returnResolvedPromise(); 
-    }
-
-    shouldStop = false;
-    loopDeferred = Promise.pending(); 
-    return gpio.openAsync(relayPin, "output")
-      .then(function() {
-        self.lightState = 1;
-        return gpio.writeAsync(relayPin, self.lightState);
-      })
-      .then(function() {
-        self.isStarted = true;
-        console.log("Relay loop started ...");
-        setTimeout(loop, self.interval);
-      });
+    return new Promise(function(resolve) {
+      if(self.isStarted) {
+        resolve();
+        return;
+      }
+      shouldStop = false;
+      loopDeferred = Promise.pending(); 
+      gpio.openAsync(relayPin, "output")
+          .then(function() {
+            self.lightState = 1;
+            return gpio.writeAsync(relayPin, self.lightState);
+          })
+          .done(function() {
+            self.isStarted = true;
+            console.log("Relay loop started ...");
+            setTimeout(loop, self.interval);
+            resolve();
+          });
+    });
   };
 
   self.stop = function() {
-    if(!self.isStarted){
+    return new Promise(function(resolve) {
+    if(!self.isStarted) {
       console.log("Party hasn't started yet, whatcha doing?");
-      return returnResolvedPromise(); 
+      resolve();
+      return;
     }
 
     shouldStop = true;
     console.log("signaling stop ...");
-    return loopDeferred.promise
-      .then(function() {
+    loopDeferred.promise.then(function() {
           // make sure the light is turned off when we stop the party
           if(self.lightState==1) {
-            self.lightState=0;
+            self.lightState = 0;
             return gpio.writeAsync(relayPin, self.lightState); 
           }
           return Promise.pending();
@@ -74,10 +72,12 @@ var PartyController = function() {
           console.log("closing relay ...");
           return gpio.closeAsync(relayPin);
         })
-      .then(function() {
+      .done(function() {
          self.isStarted = false;
          console.log("Party's over ...");
-        });
+         resolve();
+       });
+    });
   }
   return self;
 };
