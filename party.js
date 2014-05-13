@@ -14,7 +14,7 @@ var PartyController = function() {
   self.interval = 2000; // 2 second
 
   function loop() {
-    self.lightState = (self.lightState+1)%2;
+    self.lightState = (self.lightState + 1) % 2;
     console.log("Light lightState: " + self.lightState);
     gpio.writeAsync(relayPin, self.lightState)
         .done(function() { 
